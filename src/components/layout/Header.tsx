@@ -1,41 +1,104 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate,useLocation } from 'react-router-dom';
-import { LogOut, Bell, X } from 'lucide-react'; // Importing icons
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { LogOut, Bell, X } from 'lucide-react';
+import { format, parseISO,parse  } from 'date-fns';
+
+interface Notification {
+  activityActivityName: string;
+  activityDueDate: string;
+}
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
   const handleLogout = () => {
-    // Remove username from localStorage
     localStorage.removeItem('authToken');
     localStorage.removeItem('username');
-    // Remove role from localStorage
     localStorage.removeItem('role');
-    // Redirect to login page
     navigate('/');
-	  };
+  };
   const [active, setActive] = useState(location.pathname);
   const [showNotifications, setShowNotifications] = useState(false);
-  const popupRef = useRef(null);
-
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [role, setRole] = useState("");
+  const popupRef = useRef(null);
 
   useEffect(() => {
     const savedRole = localStorage.getItem("role");
     setRole(savedRole || "");
+    
+    // Fetch notifications when component mounts
+    const fetchNotifications = async () => {
+      try {
+        const username = localStorage.getItem('username');
+        if (!username) return;
+
+        // First, get the student ID
+        const studentRes = await fetch(`https://localhost:44361/api/Student/get-student-id/${username}`);
+        if (!studentRes.ok) {
+          throw new Error("Failed to fetch student ID");
+        }
+        const studentData = await studentRes.json();
+        
+        // Then fetch notifications using the student ID
+        const notifications = await fetch('https://localhost:44361/api/classgroupsubjectstudentactivities/activitynotifications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            activityId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            studentId: studentData.studentId
+          })
+        });
+
+        if (!notifications.ok) {
+          throw new Error("Failed to fetch notifications");
+        }
+
+        const notificationsData = await notifications.json();
+        
+        // Filter notifications for future dates only
+        // const today = new Date();
+        // const futureNotifications = notificationsData.filter((notification: Notification) => {
+        //   const dueDate = parseISO(notification.activityDueDate.replace(/\s(am|pm)$/i, ''));
+        //   return dueDate > today;
+        // });
+        const today = new Date();
+const futureNotifications = notificationsData.filter((notification: Notification) => {
+  const dueDate = parse(
+    notification.activityDueDate,
+    'dd/MM/yyyy hh:mm:ss a',
+    new Date()
+  );
+  return dueDate > today;
+});
+       // console.log(notificationsData);
+       console.log(futureNotifications);
+        const formattedNotifications = futureNotifications.map((item, index) => ({
+          id: index + 1,
+         
+          activityActivityName: item.activityActivityName,
+          activityDueDate: item.activityDueDate
+        }));
+      // const notifications=testnotifications;
+        console.log("This"+formattedNotifications);
+        setNotifications(formattedNotifications);
+     
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
   }, []);
 
   useEffect(() => {
     setActive(location.pathname);
   }, [location.pathname]);
 
-  // Dummy notifications (You can fetch real data from an API or Firebase later)
-  const notifications = [
-    { id: 1, sender: "Teacher", message: "New assignment posted!", time: "2 min ago" },
-    { id: 2, sender: "Student", message: "I submitted my work.", time: "10 min ago" },
-    { id: 3, sender: "Teacher", message: "Reminder: Quiz on Friday!", time: "30 min ago" }
-  ];
+
 
   // Handle clicking outside the popup to close it
   useEffect(() => {
@@ -75,6 +138,7 @@ const Navbar = () => {
           { name: "Games", icon: "🎮", link: "/Games"},
           { name: "Rewards", icon: "🏆", link: "/rewards" }
         ].map((item) => (
+        //  item.newTab ? (
           item.newTab ? (
             <a
               key={item.name}
@@ -130,10 +194,12 @@ const Navbar = () => {
 
             <ul className="mt-2 max-h-48 overflow-y-auto">
               {notifications.length > 0 ? (
-                notifications.map((notification) => (
-                  <li key={notification.id} className="p-2 border-b last:border-none">
-                    <strong>{notification.sender}:</strong> {notification.message}
-                    <p className="text-xs text-gray-500">{notification.time}</p>
+                notifications.map((notification, index) => (
+                  <li key={index} className="p-2 border-b last:border-none">
+                    <strong>Name:</strong> {notification.activityActivityName}
+                    <p className="text-xs text-gray-500">
+                      Due: {notification.activityDueDate}
+                    </p>
                   </li>
                 ))
               ) : (
@@ -144,27 +210,15 @@ const Navbar = () => {
         )}
 
         {/* Logout Button */}
-
-       <button 
-      // onClick={() => {
-      //  // localStorage.clear(); // 🧹 Clear all stored data (or use removeItem if you want to be specific)
-      //   window.location.href = "/"; // ✅ Redirect to login/home page
-      // }}
-      onClick={handleLogout}
-      className="p-2 rounded-lg hover:bg-red-600 transition-all"
-    >
-      <LogOut className="h-6 w-6 text-white" />
-    </button>
-        {/* <button 
-          onClick={() => alert("Logging out...")} 
+        <button 
+          onClick={handleLogout}
           className="p-2 rounded-lg hover:bg-red-600 transition-all"
         >
           <LogOut className="h-6 w-6 text-white" />
-        </button> */}
+        </button>
       </div>
-
     </nav>
   );
 };
 
-export default Navbar;
+export default Navbar
