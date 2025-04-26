@@ -128,6 +128,15 @@ const StudentActivities: React.FC = () => {
           {/* <StudentGrades /> */}
 
           <Accordion type="multiple" className="w-full space-y-4 mt-8">
+          <AccordionItem value="Grading Info">
+              <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-yellow-700">
+                <FileText className="h-6 w-6" />
+                ⏳ Grading
+              </AccordionTrigger>
+              <AccordionContent>
+              <StudentGrades />
+              </AccordionContent>
+            </AccordionItem>
             {/* Current Activities Section */}
             <AccordionItem value="activities">
               <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-yellow-700">
@@ -216,15 +225,7 @@ const StudentActivities: React.FC = () => {
                 </div>
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="Grading Info">
-              <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-yellow-700">
-                <FileText className="h-6 w-6" />
-                ⏳ Grading System
-              </AccordionTrigger>
-              <AccordionContent>
-              <StudentGrades />
-              </AccordionContent>
-            </AccordionItem>
+          
             {/* <StudentGrades /> */}
           </Accordion>
         </div>
