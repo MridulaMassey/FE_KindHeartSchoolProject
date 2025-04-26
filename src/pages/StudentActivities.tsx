@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import StudentGrades from './StudentGrades';
 import { toast } from "@/hooks/use-toast";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { FileText } from "lucide-react";
 
 interface Activity {
   activityId: string;
@@ -118,78 +125,108 @@ const StudentActivities: React.FC = () => {
 
       <main className="flex-1 py-8">
         <div className="container px-4 md:px-6">
-          <h1 className="text-2xl font-bold text-yellow-700 mb-4">📚 My Activities</h1>
+          {/* <StudentGrades /> */}
 
-          <div className="grid gap-6">
-            {activities.length === 0 ? (
-              <p className="text-center text-gray-600">No activities available.</p>
-            ) : (
-              activities.map((activity) => (
-                <div key={activity.activityId} className="bg-white p-4 rounded-xl shadow border border-yellow-300">
-                  <h2 className="text-xl font-semibold text-aqua-800">{activity.title}</h2>
-                  <p className="text-sm text-gray-600">{activity.description}</p>
+          <Accordion type="multiple" className="w-full space-y-4 mt-8">
+            {/* Current Activities Section */}
+            <AccordionItem value="activities">
+              <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-yellow-700">
+                <FileText className="h-6 w-6" />
+                📚 My Activities
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="grid gap-6 pt-4">
+                  {activities.length === 0 ? (
+                    <p className="text-center text-gray-600">No activities available.</p>
+                  ) : (
+                    activities.map((activity) => (
+                      <div key={activity.activityId} className="bg-white p-4 rounded-xl shadow border border-yellow-300 transform transition-all duration-300 hover:scale-[1.02]">
+                        <h2 className="text-xl font-semibold text-purple-800">{activity.title}</h2>
+                        <p className="text-sm text-gray-600">{activity.description}</p>
 
-                  <div className="mt-2 text-sm">
-                    📅 <strong>Due:</strong> {new Date(activity.dueDate).toLocaleDateString()}
-                    <br />
-                    📄 <a href={activity.pdfUrl} target="_blank" className="text-blue-600 underline">Download Instructions</a>
-                  </div>
+                        <div className="mt-2 text-sm">
+                          📅 <strong>Due:</strong> {new Date(activity.dueDate).toLocaleDateString()}
+                          <br />
+                          📄 <a href={activity.pdfUrl} target="_blank" className="text-blue-600 underline">Download Instructions</a>
+                        </div>
 
-                  <div className="mt-2">
-                    {activity.isSubmitted ? (
-                      <div className="text-green-700 text-sm">
-                        ✅ Submitted on {new Date(activity.submissionDate || "").toLocaleDateString()}
-                        {activity.grade !== null && <p>📊 Grade: <strong>{activity.grade}</strong></p>}
-                        {activity.feedback && (
-                          <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="font-semibold text-gray-700">🗣️ Teacher's Feedback:</p>
-                            <p className="text-gray-600 mt-1 italic">{activity.feedback}</p>
-                          </div>
-                        )}
-                        {activity.studentcomment && <p>📝 Your Comment: <em>{activity.studentcomment}</em></p>}
+                        <div className="mt-2">
+                          {activity.isSubmitted ? (
+                            <div className="text-green-700 text-sm">
+                              ✅ Submitted on {new Date(activity.submissionDate || "").toLocaleDateString()}
+                              {activity.grade !== null && <p>📊 Grade: <strong>{activity.grade}</strong></p>}
+                              {activity.feedback && (
+                                <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                  <p className="font-semibold text-gray-700">🗣️ Teacher's Feedback:</p>
+                                  <p className="text-gray-600 mt-1 italic">{activity.feedback}</p>
+                                </div>
+                              )}
+                              {activity.studentcomment && <p>📝 Your Comment: <em>{activity.studentcomment}</em></p>}
 
-                        {/* Only show resubmit if there's no feedback and it's before due date */}
-                        {!activity.feedback && new Date(activity.dueDate) >= new Date() && (
-                          <button
-                            className="mt-2 text-blue-600 underline"
-                            onClick={() => {
-                              setSelectedActivity(activity);
-                              setIsResubmitting(true);
-                            }}
-                          >
-                            🔁 Resubmit Activity
-                          </button>
-                        )}
+                              {/* Only show resubmit if there's no feedback and it's before due date */}
+                              {!activity.feedback && new Date(activity.dueDate) >= new Date() && (
+                                <button
+                                  className="mt-2 text-blue-600 underline"
+                                  onClick={() => {
+                                    setSelectedActivity(activity);
+                                    setIsResubmitting(true);
+                                  }}
+                                >
+                                  🔁 Resubmit Activity
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <>
+                              <p className="text-red-600 text-sm">🚨 Not submitted yet</p>
+                              <button
+                                className="mt-2 text-blue-600 underline"
+                                onClick={() => {
+                                  setSelectedActivity(activity);
+                                  setIsResubmitting(false);
+                                }}
+                              >
+                                ✏️ Submit This Activity
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    ) : (
-                      <>
-                        <p className="text-red-600 text-sm">🚨 Not submitted yet</p>
-                        <button
-                          className="mt-2 text-blue-600 underline"
-                          onClick={() => {
-                            setSelectedActivity(activity);
-                            setIsResubmitting(false);
-                          }}
-                        >
-                          ✏️ Submit This Activity
-                        </button>
-                      </>
-                    )}
-                  </div>
+                    ))
+                  )}
                 </div>
-              ))
-            )}
-          </div>
+              </AccordionContent>
+            </AccordionItem>
 
-          {/* Upcoming Activities */}
-          <div className="mt-10">
-            <h2 className="text-xl font-bold text-yellow-700 mb-2">⏳ Upcoming Activities</h2>
-            <ul className="list-disc pl-5 text-gray-700">
-              {getUpcomingActivities().map((a) => (
-                <li key={a.activityId}>{a.title} – Due {new Date(a.dueDate).toLocaleDateString()}</li>
-              ))}
-            </ul>
-          </div>
+            {/* Upcoming Activities Section */}
+            <AccordionItem value="upcoming">
+              <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-yellow-700">
+                <FileText className="h-6 w-6" />
+                ⏳ Upcoming Activities
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="pt-4">
+                  <ul className="list-disc pl-5 text-gray-700 space-y-2">
+                    {getUpcomingActivities().map((a) => (
+                      <li key={a.activityId} className="hover:text-purple-700 transition-colors">
+                        {a.title} – Due {new Date(a.dueDate).toLocaleDateString()}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="Grading Info">
+              <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-yellow-700">
+                <FileText className="h-6 w-6" />
+                ⏳ Grading System
+              </AccordionTrigger>
+              <AccordionContent>
+              <StudentGrades />
+              </AccordionContent>
+            </AccordionItem>
+            {/* <StudentGrades /> */}
+          </Accordion>
         </div>
       </main>
 
