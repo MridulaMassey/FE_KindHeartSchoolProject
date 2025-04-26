@@ -30,16 +30,23 @@ const gradeRanges: GradeInfo[] = [
 ];
 
 interface StudentGrade {
- score:number
+  score: number;
 }
+
+const getGradeInfo = (score: number): GradeInfo => {
+  return gradeRanges.find(grade => {
+    if (grade.marks === '-') return false;
+    const [min, max] = grade.marks.split('-').map(Number);
+    return score >= min && score <= max;
+  }) || gradeRanges[gradeRanges.length - 1]; // Default to last grade if no match found
+};
 
 const StudentGrades: React.FC = () => {
   const [studentGrade, setStudentGrade] = useState<StudentGrade | null>(null);
   const { toast } = useToast();
-    const [username, setUsername] = useState<string>("");
- ;
- useEffect(() => {
-    // First, get username only ONCE when component mounts
+  const [username, setUsername] = useState<string>("");
+
+  useEffect(() => {
     const storedUsername = localStorage.getItem("username") || "";
     setUsername(storedUsername);
   }, []);
@@ -47,9 +54,6 @@ const StudentGrades: React.FC = () => {
   useEffect(() => {
     const fetchGrade = async () => {
       try {
-        //  const username = localStorage.getItem('username') || ''
-        // const storedUsername = localStorage.getItem("username") || "";
-        // setUsername(storedUsername);
         if (!username) return;
         const responsestd = await fetch(`https://localhost:44361/api/Student/get-student-id/${username}`);
         if (!responsestd.ok) throw new Error("Failed to get student ID");
@@ -77,7 +81,6 @@ const StudentGrades: React.FC = () => {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <Accordion type="single" collapsible className="w-full space-y-4">
-        {/* Current Grade Section */}
         {studentGrade && (
           <AccordionItem value="current-grade">
             <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-yellow-700">
@@ -90,14 +93,16 @@ const StudentGrades: React.FC = () => {
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-6">
                       <div className="bg-purple-100 rounded-full p-8 shadow-lg">
-                        {/* <div className="text-6xl font-bold text-purple-600">{studentGrade.letterGrade}</div> */}
+                        <div className="text-xl font-bold text-purple-600">
+                          {getGradeInfo(studentGrade.score).letterGrade}
+                        </div>
                       </div>
                       <div className="text-left">
-                        {/* <div className="text-xl font-medium text-gray-700">{studentGrade.classLevel}</div> */}
+                        <div className="text-xl font-medium text-gray-700">
+                          {getGradeInfo(studentGrade.score).classLevel}
+                        </div>
                         <div className="text-lg text-gray-500 mt-2">
-                          {/* Score: <span className="font-semibold">{studentGrade.score}%</span> */}
                           Score: <span className="font-semibold">{studentGrade.score.toFixed(2)}%</span>
-
                         </div>
                       </div>
                     </div>
@@ -108,7 +113,6 @@ const StudentGrades: React.FC = () => {
           </AccordionItem>
         )}
 
-        {/* Grading System Information Section */}
         <AccordionItem value="grading-info">
           <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-blue-700">
             <Info className="h-6 w-6" />
